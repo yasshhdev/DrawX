@@ -3,17 +3,21 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build":"tsc -b",
+    "build": "tsc -b",
     "start": "node ./dist/index.js",
-    "dev":"tsc -b && node ./dist/index.js"
+    "dev": "tsc -b && node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/ws": "^8.18.1",
-    "@repo/typescript-config":"workspace:*",
+    "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.3",
     "typescript": "^5.9.3",
     "ws": "^8.18.3"
   }

@@ -1,11 +1,28 @@
+import jwt, { JwtPayload } from "jsonwebtoken"
 import { WebSocketServer } from "ws";
+import dotenv from "dotenv"
 
-const wss = new WebSocketServer ({port:8000});
+dotenv.config();
+
+const wss = new WebSocketServer({port:4000});
+
+wss.on("connection",(socket,req)=>{
+
+    const url = req.url;
+    const queryParam = new URLSearchParams(url?.split('?')[1])
+    const token = queryParam.get("token")??""
+
+    const verify = jwt.verify(token,process.env.JWT_SECRET!) // payload | strign 
+    
+    if(typeof(verify)=="string"){socket.close; return} // we need payload 
+
+    if(!verify || !verify.userid){
+        socket.close;
+        return;
+    }
+
+    const userid = verify.userid;
 
 
-wss.on("connection",(socket)=>{
 
-    socket.on("message",msg=>{
-        socket.send(msg)
-    })
 })
