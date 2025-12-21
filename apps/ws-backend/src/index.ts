@@ -1,28 +1,30 @@
 import jwt, { JwtPayload } from "jsonwebtoken"
 import { WebSocketServer } from "ws";
-import dotenv from "dotenv"
+import "dotenv/config"
+import {getJwtSecret} from "@repo/backend-common/config"
 
-dotenv.config();
 
-const wss = new WebSocketServer({port:4000});
+const JWT_SECRET = getJwtSecret();
+console.log(JWT_SECRET)
+// const wss = new WebSocketServer({port:4000});
 
-wss.on("connection",(socket,req)=>{
+// wss.on("connection",(socket,req)=>{
 
-    const url = req.url;
-    const queryParam = new URLSearchParams(url?.split('?')[1])
-    const token = queryParam.get("token")??""
+//     const url = req.url;
+//     const queryParam = new URLSearchParams(url?.split('?')[1])
+//     const token = queryParam.get("token")??""
 
-    const verify = jwt.verify(token,process.env.JWT_SECRET!) // payload | strign 
+//     const verify = jwt.verify(token,JWT_SECRET!) // payload | strign 
     
-    if(typeof(verify)=="string"){socket.close; return} // we need payload 
+//     if(typeof(verify)=="string"){socket.close; return} // we need payload 
 
-    if(!verify || !verify.userid){
-        socket.close;
-        return;
-    }
+//     if(!verify || !verify.userid){
+//         socket.close;
+//         return;
+//     }
 
-    const userid = verify.userid;
+//     const userid = verify.userid;
 
 
 
-})
+// })

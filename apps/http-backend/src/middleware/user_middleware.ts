@@ -1,5 +1,6 @@
 import { Request,Response,NextFunction } from "express";
 import jwt from "jsonwebtoken"
+import {getJwtSecret} from "@repo/backend-common/config"
 
 
 
@@ -30,9 +31,10 @@ export function user_auth (req:Request,res:Response,next:NextFunction){
         }
     })}
 
+    const JWT_SECRET = getJwtSecret();
     
 
-    const verify = jwt.verify(token,process.env.JWT_SECRET!)
+    const verify = jwt.verify(token,JWT_SECRET)
 
     if(!verify) {return res.status(400).json({
         error:{
