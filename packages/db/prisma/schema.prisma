@@ -22,16 +22,18 @@ model User {
 }
 
 model Rooms{
-  id       Int @id @default(autoincrement())
-  roomname String
-  userid   Int 
-  user     User @relation(fields: [userid] , references: [id])
-  chats    Chats[]
+  id        Int @id @default(autoincrement())
+  roomname  String
+  admin     Int 
+  user      User @relation(fields: [admin] , references: [id])
+  createdAt DateTime @default(now())
+  chats     Chats[]
 
 }
 
 model Chats{
   id       Int  @id @default(autoincrement())
+  messages String
   userid   Int 
   user     User @relation(fields: [userid],references: [id])
   roomid   Int 
