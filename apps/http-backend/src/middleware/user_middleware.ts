@@ -43,7 +43,7 @@ export function user_auth (req:Request,res:Response,next:NextFunction){
     })}
 
     //@ts-ignore
-    req.id=verify.id ;
+    req.id=verify.userId ;
     next();
     } catch(err) {
         return res.status(409).json({

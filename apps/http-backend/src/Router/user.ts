@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { user_auth } from "../middleware/user_middleware";
 import {prismaclient} from "@repo/db/schema"
-import { createUserSchema , signinSchema} from "@repo/common/zodschema"
+import { createUserSchema , signinSchema , roomIdValidation} from "@repo/common/zodschema"
 import { getJwtSecret } from "@repo/backend-common/config";
 
  
@@ -98,11 +98,62 @@ userrouter.post("/signin",async (req,res)=>{
 
     const token = jwt.sign({userId:exist.id},JWT_SECRET)
 
-    res.status(200).json({msg:"signin successful"})
-
-
-
-    
+    res.status(200).json({token:token})
 
   
+})
+
+userrouter.post("/create-room",user_auth,async (req,res)=>{
+
+
+    const {roomname} = req.body;
+    
+    try {
+
+         //@ts-ignore
+            const admin = req.id,  // haev to do augmentation (Request property of express need to be augmented , will do i f )
+    
+         if(!admin){return res.status(400).json({
+            error:{
+                code:"UNAUTHORIZED"
+            }
+         })}
+     
+
+      const roomExist = await prismaclient.rooms.findFirst({
+            where: { roomname: roomname }
+        });
+
+        if (roomExist) {
+            console.log("Room already exists!");
+            return res.status(400).json({
+                error: { code: "ROOM_NAME_EXIST" }
+            });
+        }
+
+        
+    const create = await prismaclient.rooms.create({
+        data:{
+           
+            roomname:roomname,
+            admin:admin
+        }
+    })
+
+    if(create){
+       return res.status(200).json({msg:create.id})
+    }
+    
+    
+
+    } catch (err) {
+    
+        return res.status(401).json({
+        
+        error:{
+            code:"FAILED_TO_CREATE_A_ROOM"
+        }
+    })}
+
+
 })

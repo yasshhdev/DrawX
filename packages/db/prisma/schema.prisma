@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id           Int @id @default(autoincrement())
-  email        String 
+  email        String @unique
   password     String
   name         String
   pf           String?
@@ -23,7 +23,7 @@ model User {
 
 model Rooms{
   id        Int @id @default(autoincrement())
-  roomname  String
+  roomname  String @unique
   admin     Int 
   user      User @relation(fields: [admin] , references: [id])
   createdAt DateTime @default(now())
