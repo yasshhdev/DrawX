@@ -1,16 +1,20 @@
 
 import express from "express"
 import { Router } from "express";
-
+import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { user_auth } from "../middleware/user_middleware";
 import {prismaclient} from "@repo/db/schema"
 import { createUserSchema , signinSchema} from "@repo/common/zodschema"
+import { getJwtSecret } from "@repo/backend-common/config";
 
  
 export const userrouter:Router =  Router();
 
 userrouter.use(express.json());
+
+const JWT_SECRET = getJwtSecret();
+
 
 userrouter.post("/signup",async (req,res)=>{
 
@@ -63,19 +67,42 @@ userrouter.post("/signup",async (req,res)=>{
     
 })
 
-userrouter.post("signin",async (req,res)=>{
+userrouter.post("/signin",async (req,res)=>{
     const {email , password} = req.body;
 
     const validate = signinSchema.safeParse(req.body)
-    if(!validate.success){return res.status(400).json({
+    if(!validate.success){return res.status(401).json({
         error:{
-            code:"Invalid credentials"
+            code:"INVALID_CREDENTIALS"
         }
     })}
 
-    // make db call to see if user does exist 
+    const exist =await prismaclient.user.findFirst({
+        where:{
+           email
+        }
+    })
+    if(!exist){return res.status(401).json({
+        error:{
+            code:"INVALID_CREDENTIALS"
+        }
+    })}
 
-    //const hashed =  compare password with the user instence u got from db call 
+    const match =await  bcrypt.compare(password,exist.password)
+
+    if(!match) {return res.status(401).json({
+        error:{
+            code:"INVALID_CREDENTIALS"
+        }
+    })}
+
+    const token = jwt.sign({userId:exist.id},JWT_SECRET)
+
+    res.status(200).json({msg:"signin successful"})
+
+
+
+    
 
   
 })
