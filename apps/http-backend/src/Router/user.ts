@@ -14,7 +14,7 @@ userrouter.use(express.json());
 
 userrouter.post("/signup",async (req,res)=>{
 
-    const {username,password} = req.body;
+    const {email,password} = req.body;
 
  
 
@@ -38,7 +38,7 @@ userrouter.post("/signup",async (req,res)=>{
 })
 
 userrouter.post("signin",async (req,res)=>{
-    const {username , password} = req.body;
+    const {email , password} = req.body;
 
     const validate = signinSchema.safeParse(req.body)
     if(!validate.success){return res.status(400).json({
