@@ -16,6 +16,5 @@ export const signinSchema = z.object({
 export const roomIdValidation = z.object({
 
     roomId:z.string().length(15) ,
-    roomname:z.string().min(1).max(30)
 })
 
