@@ -59,7 +59,7 @@ userrouter.post("/signup",async (req,res)=>{
     }catch(err){return res.status(400).json({
         error:{
             code:"VALIDATION_FALIED"
-        }
+        },err
     })}
 
 

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "exports":{
-  "./schema":"./src/index.ts"
+  "exports": {
+    "./schema": "./src/index.ts"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*"
@@ -17,6 +17,6 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "6.19.1",
-    "prisma": "6"
+    "prisma": "^6.19.1"
   }
 }
