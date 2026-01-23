@@ -5,14 +5,15 @@
   "main": "index.js",
   "type": "module",
   "exports":{
-    "./config":"./src/index.ts"
+    "./config":"./dist/index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build":"tsc"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*"
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
