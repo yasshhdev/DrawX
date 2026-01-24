@@ -12,7 +12,6 @@ console.log(JWT_SECRET)
 
 
 const rooms: Record<string,WebSocket[]> = {};
-
 const ws = new WebSocketServer({port:3030}) 
 
 
@@ -44,11 +43,6 @@ async function addchat(text:string,userid:number,roomid:number){
 
 }
 
-
-
-
-
-
 ws.on("connection",(socket,requesturl)=>{
 
 
@@ -57,7 +51,7 @@ ws.on("connection",(socket,requesturl)=>{
     // if sending token in url only 
     let currentroom :string | null = null 
     let username :string | null= null 
-    let roomid:number|null = null
+    let roomid:number|null|undefined = null
      
     if(!requesturl){
         return;
@@ -89,6 +83,16 @@ ws.on("connection",(socket,requesturl)=>{
 
     if(data.type==="join"){
         currentroom = data.room;
+        if(currentroom===null) {return}
+
+
+        (async ()=>{
+            const curoom = await prismaclient.rooms.findFirst({
+                  where:{roomname:currentroom}
+            })
+            roomid = curoom?.id;
+        })();
+        
 
         if(!currentroom) {return}
         
@@ -105,7 +109,7 @@ ws.on("connection",(socket,requesturl)=>{
 
                 }
                  })
-            roomid=await add.id
+            roomid= add.id
 
            })();
 
@@ -138,8 +142,8 @@ ws.on("connection",(socket,requesturl)=>{
         });
         
 
-
-        if(roomid===null) {return}
+         console.log("new msg came")
+        if(roomid===null || roomid===undefined) {return}
         const chatadd = addchat(data.text,userId,roomid);
     }
 
