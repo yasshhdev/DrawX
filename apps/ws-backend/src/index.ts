@@ -13,7 +13,7 @@ console.log(JWT_SECRET)
 
 const rooms: Record<string,WebSocket[]> = {};
 
-const ws = new WebSocketServer({port:3030})
+const ws = new WebSocketServer({port:3030}) 
 
 
 function userauth(token:string):number|null{
@@ -28,17 +28,23 @@ function userauth(token:string):number|null{
 
 }
 
-async  function createrom(currentroom:string,userId:number){
+async function addchat(text:string,userid:number,roomid:number){
 
-    const add = await prismaclient.rooms.create({
-        data:{
-                roomname:currentroom, 
-                admin:userId
 
-        }
-    })
+     const add = await prismaclient.chats.create({
+            data:{
+
+                messages:text,
+                userid:userid,
+                roomid:roomid
+
+            }
+        })
+    
 
 }
+
+
 
 
 
@@ -51,6 +57,7 @@ ws.on("connection",(socket,requesturl)=>{
     // if sending token in url only 
     let currentroom :string | null = null 
     let username :string | null= null 
+    let roomid:number|null = null
      
     if(!requesturl){
         return;
@@ -62,6 +69,8 @@ ws.on("connection",(socket,requesturl)=>{
   
      const userId = userauth(token);
      if(!userId){socket.close();}
+     if(userId===null){return}   // abt to have a look 
+    
 
 
 
@@ -84,20 +93,30 @@ ws.on("connection",(socket,requesturl)=>{
         if(!currentroom) {return}
         
         if(!rooms[currentroom]){
-            rooms[currentroom] = []
+            rooms[currentroom] = [];
 
-           if(userId===null){return}
-            const newroom = createrom(currentroom,userId)
+           (async () => {             
+           if(currentroom===null) {return}  // abt to have a look 
+
+           const add = await prismaclient.rooms.create({
+           data:{
+                roomname:currentroom, 
+                admin:userId
+
+                }
+                 })
+            roomid=await add.id
+
+           })();
+
+           
+           
+
         }
 
         rooms[currentroom]?.push(socket)
 
         username= data.username;
-
-        // const useradd =adduser()
-
-
-
 
 
         console.log("room created successflly")
@@ -117,7 +136,15 @@ ws.on("connection",(socket,requesturl)=>{
                 }))
             }
         });
+        
+
+
+        if(roomid===null) {return}
+        const chatadd = addchat(data.text,userId,roomid);
     }
+
+
+
 
     
 

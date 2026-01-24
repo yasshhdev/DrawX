@@ -36,7 +36,7 @@ model Chats{
   messages String
   userid   Int 
   user     User @relation(fields: [userid],references: [id])
-  roomid   Int 
+  roomid   Int  
   room     Rooms @relation(fields: [roomid],references: [id])
 
 }
