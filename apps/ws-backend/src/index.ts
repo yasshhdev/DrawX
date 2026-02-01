@@ -16,14 +16,21 @@ const ws = new WebSocketServer({port:3030})
 
 
 function userauth(token:string):number|null{
-
+    
+    try {
       const payload  =  jwt.verify(token,JWT_SECRET)
       
-      if(typeof payload == "string" ) {return null}
+      if(typeof payload == "string" ) {throw new Error(`payload should be of type JWTpayload not string`)}
     
-      if(!payload || !payload.userId) {return null}
+      if(!payload || !payload.userId) {throw new Error (`payload dosent contains the userid `)}
 
       return payload.userId;
+
+    } catch (err){
+        console.log(err)
+        return null 
+    }
+
 
 }
 
@@ -41,7 +48,7 @@ async function addchat(text:string,userid:number,roomid:number){
             }
         })
     } catch(err) {
-        console.log(err)
+        return  console.log(`error while inserting chats in db ${err}`)
     }
 
    
@@ -55,8 +62,6 @@ ws.on("connection",(socket,requesturl)=>{
     (async ()=>{
 
 
-        
-   
 
     console.log("an user connnected")
 
@@ -64,8 +69,8 @@ ws.on("connection",(socket,requesturl)=>{
     let currentroom :string | null = null 
     let username :string | null= null 
     let roomid:number|null|undefined = null
-    let hydrate;
-     
+
+    
     if(!requesturl){
         return;
     }
@@ -76,8 +81,8 @@ ws.on("connection",(socket,requesturl)=>{
   
      const userId = userauth(token);
      if(!userId){socket.close();}
-     if(userId===null){return}   // abt to have a look 
-    
+     if(userId===null) {return console.log(`dont get the userid from the token`) }  
+         
 
     
     socket.on("message",msg=>{
@@ -100,16 +105,15 @@ ws.on("connection",(socket,requesturl)=>{
        
         currentroom = data.room;
    
-        
-
-        if(!currentroom) {return}
+        if(!currentroom) {return console.log(`user didnt provided the room name`) }
         
 //  rooms[curretnroom] != room present in db 
+
 
         if(!rooms[currentroom]){
             rooms[currentroom] = [];
             
-           if(currentroom===null) {return }  // abt to have a look 
+           if(currentroom===null) {return console.log(`room name is null`)}  // abt to have a look 
 
            try{
             
@@ -121,7 +125,7 @@ ws.on("connection",(socket,requesturl)=>{
                 }
                  })
             roomid= add.id
-           }catch(err){console.log(err)}
+           }catch(err){console.log(`Error while inserting room in db -- ${err}`)}
            
 
                  
@@ -130,16 +134,14 @@ ws.on("connection",(socket,requesturl)=>{
 
         } else {
 
-        if(currentroom===null) {return}
-
             try{
-
 
             const curoom = await prismaclient.rooms.findFirst({
                   where:{roomname:currentroom}
             })
             roomid = curoom?.id;
-            } catch(err){console.log(err)}
+
+            } catch(err){console.log(`Error while finding the room in db -- ${err}`)}
             
 
         }
@@ -151,17 +153,6 @@ ws.on("connection",(socket,requesturl)=>{
 
             console.log("room joined successfully");
 
-        if(roomid===null) {return}
-
-       
-            try{
-                hydrate = await prismaclient.chats.findMany({
-                where:{
-                    roomid:roomid
-                }
-            })
-
-            }catch(err){console.log(err)}
             
         
 
@@ -184,7 +175,7 @@ ws.on("connection",(socket,requesturl)=>{
         
 
          console.log("new msg came")
-        if(roomid===null || roomid===undefined) {return}
+        if(roomid===null || roomid===undefined) {return console.log(`roomid is undefined or null while adding chats in db`)}
         const chatadd = addchat(data.text,userId,roomid);
     }
   
