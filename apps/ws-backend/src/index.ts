@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import { WebSocketServer , WebSocket} from "ws";
 import "dotenv/config"
 import {getJwtSecret} from "@repo/backend-common/config"
@@ -29,8 +29,9 @@ function userauth(token:string):number|null{
 
 async function addchat(text:string,userid:number,roomid:number){
 
+    try {
 
-     const add = await prismaclient.chats.create({
+          const add = await prismaclient.chats.create({
             data:{
 
                 messages:text,
@@ -39,6 +40,11 @@ async function addchat(text:string,userid:number,roomid:number){
 
             }
         })
+    } catch(err) {
+        console.log(err)
+    }
+
+   
     
 
 }
@@ -46,12 +52,19 @@ async function addchat(text:string,userid:number,roomid:number){
 ws.on("connection",(socket,requesturl)=>{
 
 
+    (async ()=>{
+
+
+        
+   
+
     console.log("an user connnected")
 
     // if sending token in url only 
     let currentroom :string | null = null 
     let username :string | null= null 
     let roomid:number|null|undefined = null
+    let hydrate;
      
     if(!requesturl){
         return;
@@ -66,8 +79,7 @@ ws.on("connection",(socket,requesturl)=>{
      if(userId===null){return}   // abt to have a look 
     
 
-
-
+    
     socket.on("message",msg=>{
 
     const data = JSON.parse(msg.toString())
@@ -82,27 +94,26 @@ ws.on("connection",(socket,requesturl)=>{
     
 
     if(data.type==="join"){
-        currentroom = data.room;
-        if(currentroom===null) {return}
-
 
         (async ()=>{
-            const curoom = await prismaclient.rooms.findFirst({
-                  where:{roomname:currentroom}
-            })
-            roomid = curoom?.id;
-        })();
+
+       
+        currentroom = data.room;
+   
         
 
         if(!currentroom) {return}
         
+//  rooms[curretnroom] != room present in db 
+
         if(!rooms[currentroom]){
             rooms[currentroom] = [];
+            
+           if(currentroom===null) {return }  // abt to have a look 
 
-           (async () => {             
-           if(currentroom===null) {return}  // abt to have a look 
-
-           const add = await prismaclient.rooms.create({
+           try{
+            
+          const add = await prismaclient.rooms.create({
            data:{
                 roomname:currentroom, 
                 admin:userId
@@ -110,22 +121,52 @@ ws.on("connection",(socket,requesturl)=>{
                 }
                  })
             roomid= add.id
-
-           })();
-
+           }catch(err){console.log(err)}
            
-           
+
+                 
+
+        console.log("room created successfully")
+
+        } else {
+
+        if(currentroom===null) {return}
+
+            try{
+
+
+            const curoom = await prismaclient.rooms.findFirst({
+                  where:{roomname:currentroom}
+            })
+            roomid = curoom?.id;
+            } catch(err){console.log(err)}
+            
 
         }
 
-        rooms[currentroom]?.push(socket)
+            rooms[currentroom]?.push(socket)
 
-        username= data.username;
-
-
-        console.log("room created successflly")
+            username= data.username;
 
 
+            console.log("room joined successfully");
+
+        if(roomid===null) {return}
+
+       
+            try{
+                hydrate = await prismaclient.chats.findMany({
+                where:{
+                    roomid:roomid
+                }
+            })
+
+            }catch(err){console.log(err)}
+            
+        
+
+         })();
+            
     }
 
     if (data.type==="chat"){
@@ -146,16 +187,13 @@ ws.on("connection",(socket,requesturl)=>{
         if(roomid===null || roomid===undefined) {return}
         const chatadd = addchat(data.text,userId,roomid);
     }
-
-
-
-
-    
+  
 
     })
 
      socket.on("close",()=>{console.log("An client disconnected")})
 
+      })();
 
 
 })
