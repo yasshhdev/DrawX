@@ -56,10 +56,9 @@ async function addchat(text:string,userid:number,roomid:number){
 
 }
 
-ws.on("connection",(socket,requesturl)=>{
+ws.on("connection",async (socket,requesturl)=>{
 
 
-    (async ()=>{
 
 
 
@@ -85,7 +84,7 @@ ws.on("connection",(socket,requesturl)=>{
          
 
     
-    socket.on("message",msg=>{
+    socket.on("message",async (msg)=>{
 
     const data = JSON.parse(msg.toString())
 
@@ -100,7 +99,7 @@ ws.on("connection",(socket,requesturl)=>{
 
     if(data.type==="join"){
 
-        (async ()=>{
+
 
        
         currentroom = data.room;
@@ -110,41 +109,47 @@ ws.on("connection",(socket,requesturl)=>{
 //  rooms[curretnroom] != room present in db 
 
 
+
+       try {
+
+
+        const upsert = await prismaclient.rooms.upsert({     // upsert = update + insert 
+            where:{
+                roomname:currentroom
+            },
+            update:{},      // update nothing if room already exist 
+            create:{
+                roomname:currentroom,
+                admin:userId
+                
+            }
+        })
+
+       }catch (err){
+        console.log(`room resolution failed`)
+       }
+       
+
+
         if(!rooms[currentroom]){
             rooms[currentroom] = [];
             
-           if(currentroom===null) {return console.log(`room name is null`)}  // abt to have a look 
 
-           try{
+        console.log("room created successfully in memory")
+
+        } 
+        
             
-          const add = await prismaclient.rooms.create({
-           data:{
-                roomname:currentroom, 
-                admin:userId
+        try{
 
-                }
-                 })
-            roomid= add.id
-           }catch(err){console.log(`Error while inserting room in db -- ${err}`)}
-           
-
-                 
-
-        console.log("room created successfully")
-
-        } else {
-
-            try{
-
-            const curoom = await prismaclient.rooms.findFirst({
-                  where:{roomname:currentroom}
+        const curoom = await prismaclient.rooms.findFirst({
+              where:{roomname:currentroom}
             })
             roomid = curoom?.id;
 
-            } catch(err){console.log(`Error while finding the room in db -- ${err}`)}
+        } catch(err){console.log(`Error while finding the room in db -- ${err}`)}
             
 
-        }
 
             rooms[currentroom]?.push(socket)
 
@@ -154,9 +159,7 @@ ws.on("connection",(socket,requesturl)=>{
             console.log("room joined successfully");
 
             
-        
-
-         })();
+    
             
     }
 
@@ -184,7 +187,6 @@ ws.on("connection",(socket,requesturl)=>{
 
      socket.on("close",()=>{console.log("An client disconnected")})
 
-      })();
 
 
 })
