@@ -5,7 +5,6 @@ import {getJwtSecret} from "@repo/backend-common/config"
 import {prismaclient} from "@repo/db/schema"
 
 
-// abt to add try catch blocks
 
 const JWT_SECRET = getJwtSecret();
 console.log(JWT_SECRET)
@@ -106,8 +105,6 @@ ws.on("connection",async (socket,requesturl)=>{
    
         if(!currentroom) {return console.log(`user didnt provided the room name`) }
         
-//  rooms[curretnroom] != room present in db 
-
 
 
        try {
@@ -155,8 +152,33 @@ ws.on("connection",async (socket,requesturl)=>{
 
             username= data.username;
 
+    
+        // hydrate 
 
-            console.log("room joined successfully");
+        let messages;
+
+        if(roomid===null || roomid===undefined) {return console.log(`roomid is undefined or null while hydrating chats`)}
+
+        try {
+
+            messages = await prismaclient.chats.findMany({
+                where:{roomid:roomid},
+                orderBy:{"id":"asc"},
+                take:20
+            })
+        }catch(err){
+            console.log(`error while hydrating chats ${err}`)
+            socket.close();
+            return;
+        }
+
+        socket.send(JSON.stringify({
+            type:"history-chat",
+            messages
+        }))
+
+
+         console.log("Room joined and hydrated:", currentroom);
 
             
     
@@ -169,6 +191,7 @@ ws.on("connection",async (socket,requesturl)=>{
         rooms[currentroom]?.forEach(user => {
             if(user.readyState == WebSocket.OPEN) {
                 user.send(JSON.stringify({
+                    type:"current-chat",
                     text:data.text,
                     room:currentroom, 
                     sender:username
@@ -185,7 +208,7 @@ ws.on("connection",async (socket,requesturl)=>{
 
     })
 
-     socket.on("close",()=>{console.log("An client disconnected")})
+     socket.on("close",()=>{console.log("a client disconnected")})
 
 
 
