@@ -122,6 +122,9 @@ ws.on("connection",async (socket,requesturl)=>{
             }
         })
 
+        roomid = upsert?.id;
+
+
        }catch (err){
         console.log(`room resolution failed`)
        }
@@ -136,16 +139,6 @@ ws.on("connection",async (socket,requesturl)=>{
 
         } 
         
-            
-        try{
-
-        const curoom = await prismaclient.rooms.findFirst({
-              where:{roomname:currentroom}
-            })
-            roomid = curoom?.id;
-
-        } catch(err){console.log(`Error while finding the room in db -- ${err}`)}
-            
 
 
             rooms[currentroom]?.push(socket)
