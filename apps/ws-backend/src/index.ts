@@ -3,6 +3,7 @@ import { WebSocketServer , WebSocket} from "ws";
 import "dotenv/config"
 import {getJwtSecret} from "@repo/backend-common/config"
 import {prismaclient} from "@repo/db/schema"
+import { createSourceMapSource } from "typescript";
 
 
 
@@ -201,7 +202,27 @@ ws.on("connection",async (socket,requesturl)=>{
 
     })
 
-     socket.on("close",()=>{console.log("a client disconnected")})
+     socket.on("close",()=>{
+        
+
+
+        if(!currentroom) {return console.log(`a client disconnectred without joining a room`)}
+
+        const sockets = rooms[currentroom]
+        if(!sockets) {return console.log(`rooms dont have this socket connection in memory already`)}
+
+        
+        rooms[currentroom]=sockets.filter((s)=>{return s !== socket})
+
+      
+        if(rooms[currentroom]?.length===0){
+            delete rooms[currentroom]
+            console.log(`an empty room named ${currentroom} deleted` )
+        }
+
+        console.log("a client disconnected")
+        
+     })
 
 
 
