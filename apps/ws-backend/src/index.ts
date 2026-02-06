@@ -3,7 +3,6 @@ import { WebSocketServer , WebSocket} from "ws";
 import "dotenv/config"
 import {getJwtSecret} from "@repo/backend-common/config"
 import {prismaclient} from "@repo/db/schema"
-import { createSourceMapSource } from "typescript";
 
 
 
@@ -57,9 +56,6 @@ async function addchat(text:string,userid:number,roomid:number){
 }
 
 ws.on("connection",async (socket,requesturl)=>{
-
-
-
 
 
     console.log("an user connnected")
